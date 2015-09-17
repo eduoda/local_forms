@@ -6,37 +6,37 @@
 /**
  * Implements hook_install().
  */
-// function local_forms_install() {
-//   document.addEventListener("offline", _onOffline, false);
-//   document.addEventListener("online", _onOnline, false);
-// }
-// function _onOffline() {
-// //   drupalgap.online = false;
-// }
-// function _onOnline() {
-// //   drupalgap.online = true;
-// //   drupalgap_alert('on');
-// }
-function local_forms_services_postprocess(options, request) {
-  // we start to resend submissions when some request was successful
-  try {
-    // the last post was successful, send another
-    var submission = local_forms_dequeue_submission();
-    if(typeof submission !== 'undefined')
-      Drupal.services.call(submission);
-  }
-  catch (error) { console.log('local_forms_services_postprocess - ' + error); }
+function local_forms_install() {
+  document.addEventListener("offline", _onOffline, false);
+  document.addEventListener("online", _onOnline, false);
+}
+function _onOffline() {
+  drupalgap.online = false;
+}
+function _onOnline() {
+  drupalgap.online = true;
+  // TODO: reload page 
 }
 
-function local_forms_services_postprocess_error(submission, request) {
+function local_forms_services_postprocess(submission, request) {
   try {
-    if (typeof drupalgap.settings.local_forms === 'undefined' ||
-        typeof drupalgap.settings.local_forms[submission.service] === 'undefined'||
-        typeof drupalgap.settings.local_forms[submission.service][submission.resource] === 'undefined')
-      return;
-    local_forms_queue_submission(submission);
+    if(request==0){
+      if (typeof drupalgap.settings.local_forms === 'undefined' ||
+          typeof drupalgap.settings.local_forms[submission.service] === 'undefined'||
+          typeof drupalgap.settings.local_forms[submission.service][submission.resource] === 'undefined')
+        return;
+      local_forms_queue_submission(submission);
+      // TODO: clear form?
+//       if(submission.tries==1)
+//         drupalgap_goto(drupalgap.settings.front); // on error, go home!
+    }else{
+      // the last post was successful, send another
+      var submission = local_forms_dequeue_submission();
+      if(typeof submission !== 'undefined')
+        Drupal.services.call(submission);
+    }
   }
-  catch (error) { console.log('local_forms_services_postprocess_error - ' + error); }
+  catch (error) { console.log('local_forms_services_postprocess - ' + error); }
 }
 
 /**
